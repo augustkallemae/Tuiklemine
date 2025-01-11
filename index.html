@@ -19,6 +19,7 @@
         }
         .slider {
             margin: 10px 0;
+            width: 700px; /* 7 korda pikem liugur */
         }
         .toggle {
             margin-top: 30px;
@@ -28,26 +29,25 @@
             justify-content: center;
             gap: 10px;
         }
+        .slider-label span {
+            font-size: 1em;
+        }
     </style>
 </head>
 <body>
     <h1>Tuiklemine</h1>
 
     <div class="frequency">
-        <p style="font-size: 1.5em;">600 Hz (fikseeritud)</p>
+        <p style="font-size: 1.5em;">600 Hz (fikseeritud) + <span id="frequency-display">600</span> Hz</p>
     </div>
 
-    <div class="frequency">
-        <p style="font-size: 1.5em;">600 Hz (muudetav)</p>
-        <input id="frequency-slider" class="slider" type="range" min="-12" max="12" value="0" step="1">
-        <div class="slider-label">
-            <span>-12</span>
-            <span>-6</span>
-            <span>0</span>
-            <span>6</span>
-            <span>12</span>
-        </div>
-        <p>Muudetav sagedus: <span id="frequency-display">600</span> Hz</p>
+    <input id="frequency-slider" class="slider" type="range" min="-12" max="12" value="0" step="1">
+    <div class="slider-label">
+        <span>-12 Hz</span>
+        <span>-6 Hz</span>
+        <span>0 Hz</span>
+        <span>6 Hz</span>
+        <span>12 Hz</span>
     </div>
 
     <button id="toggle-sound" class="toggle">Lülita heli sisse</button>
@@ -63,7 +63,7 @@
 
         function createOscillator(frequency) {
             const oscillator = context.createOscillator();
-            oscillator.type = 'sine';
+            oscillator.type = 'sine'; // Kasutame puhast siinusheli
             oscillator.frequency.value = frequency;
             oscillator.connect(context.destination);
             return oscillator;
