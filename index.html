@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tuiklemine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        label {
+            font-size: 1.2em;
+            margin: 10px;
+        }
+        input[type="range"] {
+            width: 300px;
+            margin: 20px;
+        }
+        .button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tuiklemine</h1>
+    <p>600 Hz</p>
+    <p>600 Hz (muudetav)</p>
+    <input type="range" id="frequencySlider" min="-5" max="5" step="1" value="0">
+    <label for="frequencySlider">Reguleeri sagedust (-5 Hz kuni +5 Hz)</label>
+    <br>
+    <button id="toggleSound" class="button">Lülita heli sisse</button>
+
+    <script>
+        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let isPlaying = false;
+
+        // Fixed frequency oscillator (600 Hz)
+        let fixedOscillator = audioContext.createOscillator();
+        fixedOscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+        fixedOscillator.type = "sine";
+
+        // Adjustable frequency oscillator
+        let adjustableOscillator = audioContext.createOscillator();
+        adjustableOscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+        adjustableOscillator.type = "sine";
+
+        // Gain nodes to control sound
+        let fixedGain = audioContext.createGain();
+        let adjustableGain = audioContext.createGain();
+
+        // Connect oscillators to gain and to output
+        fixedOscillator.connect(fixedGain).connect(audioContext.destination);
+        adjustableOscillator.connect(adjustableGain).connect(audioContext.destination);
+
+        // Start oscillators but mute sound
+        fixedOscillator.start();
+        adjustableOscillator.start();
+        fixedGain.gain.setValueAtTime(0, audioContext.currentTime);
+        adjustableGain.gain.setValueAtTime(0, audioContext.currentTime);
+
+        // Handle slider changes
+        const frequencySlider = document.getElementById("frequencySlider");
+        frequencySlider.addEventListener("input", () => {
+            let offset = parseInt(frequencySlider.value);
+            adjustableOscillator.frequency.setValueAtTime(600 + offset, audioContext.currentTime);
+        });
+
+        // Toggle sound on/off
+        const toggleButton = document.getElementById("toggleSound");
+        toggleButton.addEventListener("click", () => {
+            if (!isPlaying) {
+                fixedGain.gain.setValueAtTime(0.5, audioContext.currentTime); // Set volume
+                adjustableGain.gain.setValueAtTime(0.5, audioContext.currentTime);
+                toggleButton.textContent = "Lülita heli välja";
+                isPlaying = true;
+            } else {
+                fixedGain.gain.setValueAtTime(0, audioContext.currentTime);
+                adjustableGain.gain.setValueAtTime(0, audioContext.currentTime);
+                toggleButton.textContent = "Lülita heli sisse";
+                isPlaying = false;
+            }
+        });
+    </script>
+</body>
+</html>
