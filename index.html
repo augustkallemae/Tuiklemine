@@ -29,14 +29,16 @@
             width: 100%;
         }
         .slider-label {
-            position: absolute;
-            top: 30px;
-            width: 100%;
+            position: relative;
             display: flex;
             justify-content: space-between;
+            margin-top: 10px;
+            padding: 0 10px;
         }
         .slider-label span {
-            font-size: 1em;
+            text-align: center;
+            width: 4%; /* Kohandatud joondamiseks liuguriga */
+            transform: translateX(-50%);
         }
         .footer {
             margin-top: 50px;
@@ -89,13 +91,15 @@
 
     <script>
         const context = new (window.AudioContext || window.webkitAudioContext)();
-        let oscillator1, oscillator2, gainNode;
+        let oscillator1, oscillator2;
         let isPlaying = false;
 
         const slider = document.getElementById('frequency-slider');
         const frequencyDisplay = document.getElementById('frequency-display');
         const toggleButton = document.getElementById('toggle-sound');
 
+        let currentOffset = parseInt(slider.value, 10);
+        
         function createOscillator(frequency) {
             const oscillator = context.createOscillator();
             oscillator.type = 'sine'; // Puhas siinusheli
@@ -104,15 +108,11 @@
         }
 
         function startSound() {
-            gainNode = context.createGain();
-            gainNode.gain.setValueAtTime(0, context.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.5, context.currentTime + 0.5); // Fade-in
-
             oscillator1 = createOscillator(600);
-            oscillator2 = createOscillator(600);
+            oscillator2 = createOscillator(600 + currentOffset);
 
-            oscillator1.connect(gainNode).connect(context.destination);
-            oscillator2.connect(gainNode).connect(context.destination);
+            oscillator1.connect(context.destination);
+            oscillator2.connect(context.destination);
 
             oscillator1.start();
             oscillator2.start();
@@ -121,21 +121,17 @@
         }
 
         function stopSound() {
-            if (gainNode) {
-                gainNode.gain.linearRampToValueAtTime(0, context.currentTime + 0.5); // Fade-out
-                setTimeout(() => {
-                    if (oscillator1) oscillator1.stop();
-                    if (oscillator2) oscillator2.stop();
-                }, 500);
-            }
+            if (oscillator1) oscillator1.stop();
+            if (oscillator2) oscillator2.stop();
+
             isPlaying = false;
         }
 
         slider.addEventListener('input', () => {
-            const offset = parseInt(slider.value, 10);
-            const newFrequency = 600 + offset;
+            currentOffset = parseInt(slider.value, 10);
+            const newFrequency = 600 + currentOffset;
             frequencyDisplay.textContent = newFrequency;
-            if (oscillator2) {
+            if (isPlaying && oscillator2) {
                 oscillator2.frequency.setValueAtTime(newFrequency, context.currentTime);
             }
         });
@@ -152,3 +148,4 @@
     </script>
 </body>
 </html>
+
