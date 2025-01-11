@@ -19,15 +19,21 @@
         }
         .slider {
             margin: 10px 0;
-            width: 100%; /* Liugur on sama pikk kui skaala */
+            width: 100%;
         }
         .toggle {
             margin-top: 30px;
         }
+        .slider-container {
+            position: relative;
+            width: 100%;
+        }
         .slider-label {
+            position: absolute;
+            top: 30px;
+            width: 100%;
             display: flex;
             justify-content: space-between;
-            margin: 0 5px;
         }
         .slider-label span {
             font-size: 1em;
@@ -46,33 +52,35 @@
         <p style="font-size: 1.5em;">600 Hz (fikseeritud) + <span id="frequency-display">600</span> Hz</p>
     </div>
 
-    <input id="frequency-slider" class="slider" type="range" min="-12" max="12" value="0" step="1">
-    <div class="slider-label">
-        <span>-12</span>
-        <span>-11</span>
-        <span>-10</span>
-        <span>-9</span>
-        <span>-8</span>
-        <span>-7</span>
-        <span>-6</span>
-        <span>-5</span>
-        <span>-4</span>
-        <span>-3</span>
-        <span>-2</span>
-        <span>-1</span>
-        <span>0</span>
-        <span>+1</span>
-        <span>+2</span>
-        <span>+3</span>
-        <span>+4</span>
-        <span>+5</span>
-        <span>+6</span>
-        <span>+7</span>
-        <span>+8</span>
-        <span>+9</span>
-        <span>+10</span>
-        <span>+11</span>
-        <span>+12 (Hz)</span>
+    <div class="slider-container">
+        <input id="frequency-slider" class="slider" type="range" min="-12" max="12" value="0" step="1">
+        <div class="slider-label">
+            <span>-12</span>
+            <span>-11</span>
+            <span>-10</span>
+            <span>-9</span>
+            <span>-8</span>
+            <span>-7</span>
+            <span>-6</span>
+            <span>-5</span>
+            <span>-4</span>
+            <span>-3</span>
+            <span>-2</span>
+            <span>-1</span>
+            <span>0</span>
+            <span>+1</span>
+            <span>+2</span>
+            <span>+3</span>
+            <span>+4</span>
+            <span>+5</span>
+            <span>+6</span>
+            <span>+7</span>
+            <span>+8</span>
+            <span>+9</span>
+            <span>+10</span>
+            <span>+11</span>
+            <span>+12 (Hz)</span>
+        </div>
     </div>
 
     <button id="toggle-sound" class="toggle">Lülita heli sisse</button>
@@ -81,7 +89,7 @@
 
     <script>
         const context = new (window.AudioContext || window.webkitAudioContext)();
-        let oscillator1, oscillator2;
+        let oscillator1, oscillator2, gainNode;
         let isPlaying = false;
 
         const slider = document.getElementById('frequency-slider');
@@ -90,23 +98,36 @@
 
         function createOscillator(frequency) {
             const oscillator = context.createOscillator();
-            oscillator.type = 'sine'; // Kasutame puhast siinusheli
+            oscillator.type = 'sine'; // Puhas siinusheli
             oscillator.frequency.value = frequency;
-            oscillator.connect(context.destination);
             return oscillator;
         }
 
         function startSound() {
+            gainNode = context.createGain();
+            gainNode.gain.setValueAtTime(0, context.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.5, context.currentTime + 0.5); // Fade-in
+
             oscillator1 = createOscillator(600);
             oscillator2 = createOscillator(600);
+
+            oscillator1.connect(gainNode).connect(context.destination);
+            oscillator2.connect(gainNode).connect(context.destination);
+
             oscillator1.start();
             oscillator2.start();
+
             isPlaying = true;
         }
 
         function stopSound() {
-            if (oscillator1) oscillator1.stop();
-            if (oscillator2) oscillator2.stop();
+            if (gainNode) {
+                gainNode.gain.linearRampToValueAtTime(0, context.currentTime + 0.5); // Fade-out
+                setTimeout(() => {
+                    if (oscillator1) oscillator1.stop();
+                    if (oscillator2) oscillator2.stop();
+                }, 500);
+            }
             isPlaying = false;
         }
 
@@ -131,4 +152,3 @@
     </script>
 </body>
 </html>
-
