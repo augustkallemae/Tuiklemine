@@ -8,83 +8,100 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 50px;
-        }
-        h1 {
-            font-size: 2em;
-        }
-        label {
-            font-size: 1.2em;
-            margin: 10px;
-        }
-        input[type="range"] {
-            width: 300px;
             margin: 20px;
         }
-        .button {
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+        .frequency {
             margin-top: 20px;
+        }
+        .slider {
+            margin: 10px 0;
+        }
+        .toggle {
+            margin-top: 30px;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
     <h1>Tuiklemine</h1>
-    <p>600 Hz</p>
-    <p>600 Hz (muudetav)</p>
-    <input type="range" id="frequencySlider" min="-5" max="5" step="1" value="0">
-    <label for="frequencySlider">Reguleeri sagedust (-5 Hz kuni +5 Hz)</label>
-    <br>
-    <button id="toggleSound" class="button">Lülita heli sisse</button>
+
+    <div class="frequency">
+        <p style="font-size: 1.5em;">600 Hz (fikseeritud)</p>
+    </div>
+
+    <div class="frequency">
+        <p style="font-size: 1.5em;">600 Hz (muudetav)</p>
+        <input id="frequency-slider" class="slider" type="range" min="-12" max="12" value="0" step="1">
+        <div class="slider-label">
+            <span>-12</span>
+            <span>-6</span>
+            <span>0</span>
+            <span>6</span>
+            <span>12</span>
+        </div>
+        <p>Muudetav sagedus: <span id="frequency-display">600</span> Hz</p>
+    </div>
+
+    <button id="toggle-sound" class="toggle">Lülita heli sisse</button>
 
     <script>
-        let audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const context = new (window.AudioContext || window.webkitAudioContext)();
+        let oscillator1, oscillator2;
         let isPlaying = false;
 
-        // Fixed frequency oscillator (600 Hz)
-        let fixedOscillator = audioContext.createOscillator();
-        fixedOscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-        fixedOscillator.type = "sine";
+        const slider = document.getElementById('frequency-slider');
+        const frequencyDisplay = document.getElementById('frequency-display');
+        const toggleButton = document.getElementById('toggle-sound');
 
-        // Adjustable frequency oscillator
-        let adjustableOscillator = audioContext.createOscillator();
-        adjustableOscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-        adjustableOscillator.type = "sine";
+        function createOscillator(frequency) {
+            const oscillator = context.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.value = frequency;
+            oscillator.connect(context.destination);
+            return oscillator;
+        }
 
-        // Gain nodes to control sound
-        let fixedGain = audioContext.createGain();
-        let adjustableGain = audioContext.createGain();
+        function startSound() {
+            oscillator1 = createOscillator(600);
+            oscillator2 = createOscillator(600);
+            oscillator1.start();
+            oscillator2.start();
+            isPlaying = true;
+        }
 
-        // Connect oscillators to gain and to output
-        fixedOscillator.connect(fixedGain).connect(audioContext.destination);
-        adjustableOscillator.connect(adjustableGain).connect(audioContext.destination);
+        function stopSound() {
+            if (oscillator1) oscillator1.stop();
+            if (oscillator2) oscillator2.stop();
+            isPlaying = false;
+        }
 
-        // Start oscillators but mute sound
-        fixedOscillator.start();
-        adjustableOscillator.start();
-        fixedGain.gain.setValueAtTime(0, audioContext.currentTime);
-        adjustableGain.gain.setValueAtTime(0, audioContext.currentTime);
-
-        // Handle slider changes
-        const frequencySlider = document.getElementById("frequencySlider");
-        frequencySlider.addEventListener("input", () => {
-            let offset = parseInt(frequencySlider.value);
-            adjustableOscillator.frequency.setValueAtTime(600 + offset, audioContext.currentTime);
+        slider.addEventListener('input', () => {
+            const offset = parseInt(slider.value, 10);
+            const newFrequency = 600 + offset;
+            frequencyDisplay.textContent = newFrequency;
+            if (oscillator2) {
+                oscillator2.frequency.setValueAtTime(newFrequency, context.currentTime);
+            }
         });
 
-        // Toggle sound on/off
-        const toggleButton = document.getElementById("toggleSound");
-        toggleButton.addEventListener("click", () => {
-            if (!isPlaying) {
-                fixedGain.gain.setValueAtTime(0.5, audioContext.currentTime); // Set volume
-                adjustableGain.gain.setValueAtTime(0.5, audioContext.currentTime);
-                toggleButton.textContent = "Lülita heli välja";
-                isPlaying = true;
+        toggleButton.addEventListener('click', () => {
+            if (isPlaying) {
+                stopSound();
+                toggleButton.textContent = 'Lülita heli sisse';
             } else {
-                fixedGain.gain.setValueAtTime(0, audioContext.currentTime);
-                adjustableGain.gain.setValueAtTime(0, audioContext.currentTime);
-                toggleButton.textContent = "Lülita heli sisse";
-                isPlaying = false;
+                startSound();
+                toggleButton.textContent = 'Lülita heli välja';
             }
         });
     </script>
 </body>
 </html>
+
