@@ -19,7 +19,7 @@
         }
         .slider {
             margin: 10px 0;
-            width: 700px; /* 7 korda pikem liugur */
+            width: 100%; /* Liugur on sama pikk kui skaala */
         }
         .toggle {
             margin-top: 30px;
@@ -27,10 +27,15 @@
         .slider-label {
             display: flex;
             justify-content: space-between;
-            margin: 0 35px;
+            margin: 0 5px;
         }
         .slider-label span {
             font-size: 1em;
+        }
+        .footer {
+            margin-top: 50px;
+            font-size: 0.8em;
+            color: gray;
         }
     </style>
 </head>
@@ -67,10 +72,12 @@
         <span>+9 Hz</span>
         <span>+10 Hz</span>
         <span>+11 Hz</span>
-        <span>+12 Hz</span>
+        <span>+12 Hz (Hz)</span>
     </div>
 
     <button id="toggle-sound" class="toggle">Lülita heli sisse</button>
+
+    <div class="footer">Seadme valmistas Holger Maaker 2025. aastal</div>
 
     <script>
         const context = new (window.AudioContext || window.webkitAudioContext)();
